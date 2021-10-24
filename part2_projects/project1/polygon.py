@@ -5,6 +5,8 @@ class Polygon:
     """A class to represent a polygon of any number of vertices."""
 
     def __init__(self, n: int, circumradius: float):
+        if n < 3:
+            raise ValueError("Polygon must have at least 3 sides.")
         self.vertices = n
         self.circumradius = circumradius
         self.edges = n
@@ -49,15 +51,20 @@ class Polygon:
     def __repr__(self) -> str:
         return f"Polygon({self.vertices}, {self.circumradius})"
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, other) -> bool:
         """
         Compares the equality of two polygons based on their
         number of vertices and their circumradius.
         """
+        if isinstance(other, self.__class__):
+            return (self.vertices == other.vertices
+                    and self.circumradius == other.circumradius)
+        else:
+            return NotImplemented
 
-        return (self.vertices == o.vertices) and (self.circumradius == o.circumradius)
-
-    def __gt__(self, o) -> bool:
+    def __gt__(self, other) -> bool:
         """Compares two polygons based on their number of vertices."""
-
-        return self.vertices > o.vertices
+        if isinstance(other, Polygon):
+            return self.vertices > other.vertices
+        else:
+            return NotImplemented
