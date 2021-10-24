@@ -11,30 +11,26 @@ class Polygons:
     """
 
     def __init__(self, largest_n: int, common_circumradius: float):
+        if largest_n < 3:
+            raise ValueError("largest_n must be greater than 3.")
         self.largest_n = largest_n
         self.common_circumradius = common_circumradius
-        self._polygons = []
+        self._polygons = [Polygon(i, common_circumradius)
+                          for i in range(3, largest_n+1)]
         self._max_efficiency_polygon = None
-
-    @property
-    def polygons(self):
-        if not self._polygons:
-            # the polygon list is empty
-            n = 3
-            while n <= self.largest_n:
-                self._polygons.append(Polygon(n, self.common_circumradius))
-                n += 1
-        return self._polygons
 
     @property
     def max_efficiency_polygon(self):
         if self._max_efficiency_polygon is None:
             self._max_efficiency_polygon = max(
-                self.polygons, key=lambda p: p.area / p.perimeter)
+                self._polygons, key=lambda p: p.area / p.perimeter)
         return self._max_efficiency_polygon
 
     def __getitem__(self, s):
-        return self.polygons[s]
+        return self._polygons[s]
 
     def __len__(self):
-        return len(self.polygons)
+        return self.largest_n - 2
+
+    def __repr__(self) -> str:
+        return f"Polygons({self.largest_n}, {self.common_circumradius})"
