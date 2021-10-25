@@ -15,19 +15,41 @@ class Polygons:
             raise ValueError("largest_n must be greater than 3.")
         self.largest_n = largest_n
         self.common_circumradius = common_circumradius
-        self._polygons = [Polygon(i, common_circumradius)
-                          for i in range(3, largest_n+1)]
+        # self._polygons = [Polygon(i, common_circumradius)
+        #                   for i in range(3, largest_n+1)]
         self._max_efficiency_polygon = None
 
     @property
     def max_efficiency_polygon(self):
         if self._max_efficiency_polygon is None:
             self._max_efficiency_polygon = max(
-                self._polygons, key=lambda p: p.area / p.perimeter)
+                self.PolygonsIterator(
+                    self.largest_n, self.common_circumradius),
+                key=lambda p: p.area / p.perimeter)
         return self._max_efficiency_polygon
 
-    def __getitem__(self, s):
-        return self._polygons[s]
+    def __iter__(self):
+        return self.PolygonsIterator(self.largest_n, self.common_circumradius)
+
+    class PolygonsIterator:
+        def __init__(self, largest_n, common_circumradius):
+            self.largest_n = largest_n
+            self.R = common_circumradius
+            self.i = 3
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self.i > self.largest_n:
+                raise StopIteration
+            else:
+                result = Polygon(self.i, self.R)
+                self.i += 1
+                return result
+
+    # def __getitem__(self, s):
+    #     return self._polygons[s]
 
     def __len__(self):
         return self.largest_n - 2
