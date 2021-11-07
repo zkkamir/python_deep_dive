@@ -42,7 +42,14 @@ def stale_person_iter():
             yield person
 
 
-stale_persons = stale_person_iter()
+# stale_persons = stale_person_iter()
 
-for _ in range(5):
-    print(next(stale_persons))
+# for _ in range(5):
+#     print(next(stale_persons))
+
+def non_stale_person_iter():
+    persons = person_iter()
+
+    for person in persons:
+        if person.last_updated > datetime(2017, 3, 1).date():
+            yield person
