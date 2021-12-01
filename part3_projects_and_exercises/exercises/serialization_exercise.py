@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 import json
+from pprint import pprint
 
 
 class Stock:
@@ -22,6 +23,9 @@ class Stock:
                     close=self.close,
                     volume=self.volume
                     )
+
+    def __eq__(self, other):
+        return isinstance(other, Stock) and self.as_dict() == other.as_dict()
 
     def __repr__(self):
         return f'Stock({self.symbol}, {self.date}, {self.open_}, ' + \
@@ -45,6 +49,9 @@ class Trade:
                     volume=self.volume,
                     commission=self.commission
                     )
+
+    def __eq__(self, other):
+        return isinstance(other, Trade) and self.as_dict() == other.as_dict()
 
     def __repr__(self):
         return f'Trade({self.symbol}, {self.timestamp}, {self.order}, ' + \
@@ -85,4 +92,61 @@ class CustomJSONEncoder(json.JSONEncoder):
             return super().default(obj)
 
 
-# print(json.dumps(activity, cls=CustomJSONEncoder, indent=2))
+encoded = json.dumps(activity, cls=CustomJSONEncoder, indent=2)
+# print(encoded)
+
+
+# exercise 2
+
+def decode_stock(d):
+    s = Stock(d['symbol'],
+              datetime.strptime(d['date'], '%Y-%m-%d').date(),
+              Decimal(d['open_']),
+              Decimal(d['high']),
+              Decimal(d['low']),
+              Decimal(d['close']),
+              d['volume']
+              )
+    return s
+
+
+def decode_trade(d):
+    t = Trade(d['symbol'],
+              datetime.strptime(d['timestamp'], '%Y-%m-%dT%H:%M:%S'),
+              d['order'],
+              Decimal(d['price']),
+              d['volume'],
+              Decimal(d['commission']),
+              )
+    return t
+
+
+def decode_financials(d):
+    object_type = d.get('object')
+    if object_type == 'Stock':
+        return decode_stock(d)
+    elif object_type == 'Trade':
+        return decode_trade(d)
+    return d
+
+
+class CustomJSONDecoder(json.JSONDecoder):
+    def decode(self, arg):
+        data = json.loads(arg)
+        return self.parse_financials(data)
+
+    def parse_financials(self, obj):
+        if isinstance(obj, dict):
+            obj = decode_financials(obj)
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    obj[key] = self.parse_financials(value)
+        elif isinstance(obj, list):
+            for index, item in enumerate(obj):
+                obj[index] = self.parse_financials(item)
+        return obj
+
+
+decoded = json.loads(encoded, cls=CustomJSONDecoder)
+pprint(decoded, indent=2)
+print(decoded == activity)
