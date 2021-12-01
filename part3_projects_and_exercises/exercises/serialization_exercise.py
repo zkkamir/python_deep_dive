@@ -13,6 +13,16 @@ class Stock:
         self.close = close
         self.volume = volume
 
+    def as_dict(self):
+        return dict(symbol=self.symbol,
+                    date=self.date,
+                    open_=self.open_,
+                    high=self.high,
+                    low=self.low,
+                    close=self.close,
+                    volume=self.volume
+                    )
+
     def __repr__(self):
         return f'Stock({self.symbol}, {self.date}, {self.open_}, ' + \
                f'{self.high}, {self.low}, {self.close}, {self.volume})'
@@ -26,6 +36,15 @@ class Trade:
         self.price = price
         self.volume = volume
         self.commission = commission
+
+    def as_dict(self):
+        return dict(symbol=self.symbol,
+                    timestamp=self.timestamp,
+                    order=self.order,
+                    price=self.price,
+                    volume=self.volume,
+                    commission=self.commission
+                    )
 
     def __repr__(self):
         return f'Trade({self.symbol}, {self.timestamp}, {self.order}, ' + \
@@ -51,58 +70,19 @@ activity = {
 
 
 class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, arg):
-        if isinstance(arg, Stock):
-            obj = dict(
-                datatype='Stock',
-                symbol=arg.symbol,
-                date=arg.date,
-                open_=arg.open_,
-                high=arg.high,
-                low=arg.low,
-                close=arg.close,
-                volume=arg.volume
-
-            )
-            return obj
-        if isinstance(arg, Trade):
-            obj = dict(
-                datatype='Trade',
-                symbol=arg.symbol,
-                timestamp=arg.timestamp,
-                order=arg.order,
-                price=arg.price,
-                volume=arg.volume,
-                commission=arg.commission
-            )
-            return obj
-        if isinstance(arg, datetime):
-            obj = dict(
-                datatype='datetime',
-                year=arg.year,
-                month=arg.month,
-                day=arg.day,
-                hour=arg.hour,
-                minute=arg.minute,
-                second=arg.second
-            )
-            return obj
-        if isinstance(arg, date):
-            obj = dict(
-                datatype='date',
-                year=arg.year,
-                month=arg.month,
-                day=arg.day
-            )
-            return obj
-        if isinstance(arg, Decimal):
-            obj = dict(
-                datatype='Decimal',
-                value=str(arg)
-            )
-            return obj
+    def default(self, obj):
+        if isinstance(obj, Stock) or isinstance(obj, Trade):
+            result = obj.as_dict()
+            result['object'] = obj.__class__.__name__
+            return result
+        elif isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%dT%H:%M:%S')
+        elif isinstance(obj, date):
+            return obj.strftime('%Y-%m-%d')
+        elif isinstance(obj, Decimal):
+            return str(obj)
         else:
-            return super().default(arg)
+            return super().default(obj)
 
 
 # print(json.dumps(activity, cls=CustomJSONEncoder, indent=2))
