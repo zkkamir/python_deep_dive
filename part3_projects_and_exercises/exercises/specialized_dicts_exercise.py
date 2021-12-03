@@ -75,29 +75,26 @@ import json
 from pprint import pprint
 
 
-# def load_settings(env):
-#     with open(f'exercises/specialized_dicts_files/{env}.json') as f:
-#         settings = json.load(f)
-#     return settings
+def load_settings(env):
+    with open(f'exercises/specialized_dicts_files/{env}.json') as f:
+        settings = json.load(f)
+    return settings
 
 
-# def settings(env):
-#     common_settings = load_settings('common')
-#     env_settings = load_settings(f'{env}')
-#     return ChainMap(env_settings, common_settings)
+def chain_recursive(d1, d2):
+    chain = ChainMap(d1, d2)
+    for k, v in d1.items():
+        if isinstance(v, dict) and k in d2:
+            chain[k] = chain_recursive(d1[k], d2[k])
+        return chain
 
 
-# def chain_recursive(d1, d2):
-#     chain = ChainMap(d1, d2)
-#     for k, v in d1.items():
-#         if isinstance(v, dict) and k in d2:
-#             chain[k] = chain_recursive(d1[k], d2[k])
-#         return chain
+def settings(env):
+    common_settings = load_settings('common')
+    env_settings = load_settings(f'{env}')
+    return chain_recursive(env_settings, common_settings)
 
 
-# d1 = load_settings('common')
-# d2 = load_settings('dev')
+dev = settings('dev')
 
-# dev = chain_recursive(d2, d1)
-
-# pprint(dev)
+pprint(dev)
