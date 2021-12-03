@@ -63,7 +63,7 @@
 #     d = Counter(person.eye_color for person in persons)
 #     for color in colors:
 #         d[color] = d[color]
-#     return d
+#     return d.most_common()
 
 
 # print(eye_color_counter(eye_colors, persons))
@@ -71,14 +71,33 @@
 # exercise 3
 # solution
 from collections import ChainMap
-from json import loads, JSONDecoder
+import json
+from pprint import pprint
 
 
-def combiner(env_name):
-    common = loads('specialized_dicts/common.json')
-    wanted = loads(f'specialized_dicts/{env_name}.json')
-    print(common)
-    print(wanted)
+# def load_settings(env):
+#     with open(f'exercises/specialized_dicts_files/{env}.json') as f:
+#         settings = json.load(f)
+#     return settings
 
 
-combiner('dev')
+# def settings(env):
+#     common_settings = load_settings('common')
+#     env_settings = load_settings(f'{env}')
+#     return ChainMap(env_settings, common_settings)
+
+
+# def chain_recursive(d1, d2):
+#     chain = ChainMap(d1, d2)
+#     for k, v in d1.items():
+#         if isinstance(v, dict) and k in d2:
+#             chain[k] = chain_recursive(d1[k], d2[k])
+#         return chain
+
+
+# d1 = load_settings('common')
+# d2 = load_settings('dev')
+
+# dev = chain_recursive(d2, d1)
+
+# pprint(dev)
