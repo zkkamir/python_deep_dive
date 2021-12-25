@@ -1,58 +1,84 @@
+from collections.abc import Sequence
 from numbers import Integral
 
 
-class IntegerField:
+class BaseValidator:
+    def __init__(self, type_, min_, max_):
+        self.type_ = type_
+        self.min_ = min_
+        self.max_ = max_
+
+    def __set_name__(self, cls, name):
+        self.name = name
+
+    def __set__(self, instance, value):
+        if not isinstance(value, self.type_):
+            raise ValueError(
+                f'{self.name} must be of type {self.type_.__name__}.')
+        if issubclass(self.type_, Sequence):
+            if self.min_ is not None and len(value) < self.min_:
+                raise ValueError(
+                    f'length of {self.name} must be at least {self.min_}.')
+            elif self.max_ is not None and len(value) > self.max_:
+                raise ValueError(
+                    f'length of {self.name} must be less than {self.max_}.')
+        else:
+            if self.min_ is not None and value < self.min_:
+                raise ValueError(
+                    f'{self.name} must be at least {self.min_}.')
+            if self.max_ is not None and value > self.max_:
+                raise ValueError(
+                    f'{self.name} must be less than {self.max_}.')
+        instance.__dict__[self.name] = value
+
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            return self
+        else:
+            return instance.__dict__.get(self.name, None)
+
+
+class IntegerField(BaseValidator):
     def __init__(self, min_value=None, max_value=None):
-        self.min_value = min_value
-        self.max_value = max_value
-
-    def __set_name__(self, cls, name):
-        self.name = name
-
-    def __set__(self, instance, value):
-        if not isinstance(value, Integral):
-            raise ValueError(f'{self.name} must be an integral number.')
-        if self.min_value is not None and value < self.min_value:
-            raise ValueError(
-                f'{self.name} must be at least {self.min_value}.')
-        if self.max_value is not None and value > self.max_value:
-            raise ValueError(
-                f'{self.name} must be less than {self.max_value}.')
-        instance.__dict__[self.name] = value
-
-    def __get__(self, instance, owner_cls):
-        if instance is None:
-            return self
-        else:
-            return instance.__dict__.get(self.name, None)
+        super().__init__(Integral, min_value, max_value)
 
 
-class CharField:
+class CharField(BaseValidator):
     def __init__(self, min_length=0, max_length=None):
-        self.min_length = min_length
-        self.max_length = max_length
-
-    def __set_name__(self, cls, name):
-        self.name = name
-
-    def __set__(self, instance, value):
-        if not isinstance(value, str):
-            raise ValueError(f'{self.name} must be a string.')
-        if len(value) < self.min_length:
-            raise ValueError(
-                f'{self.name} must be at least {self.min_length} characters long.')
-        if self.max_length is not None and len(value) > self.max_length:
-            raise ValueError(
-                f'{self.name} must be shorter than {self.max_length} characters.')
-        instance.__dict__[self.name] = value
-
-    def __get__(self, instance, owner_cls):
-        if instance is None:
-            return self
-        else:
-            return instance.__dict__.get(self.name, None)
+        super().__init__(str, min_length, max_length)
 
 
 class Person:
-    name = CharField(1, 50)
+    name = CharField(1, 10)
     age = IntegerField(0, 200)
+
+
+p1 = Person()
+
+p1.name = 'Mamad'
+p1.age = 2
+
+try:
+    p1.name = 10
+except ValueError as ex:
+    print(ex)
+try:
+    p1.name = ''
+except ValueError as ex:
+    print(ex)
+try:
+    p1.name = '12345678910'
+except ValueError as ex:
+    print(ex)
+try:
+    p1.age = '12s'
+except ValueError as ex:
+    print(ex)
+try:
+    p1.age = -1
+except ValueError as ex:
+    print(ex)
+try:
+    p1.age = 1000
+except ValueError as ex:
+    print(ex)
